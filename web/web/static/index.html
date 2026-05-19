@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0B6E5E" />
+  <title>手心语 — 手语助手</title>
+  <link rel="icon" href="/favicon.ico" type="image/svg+xml" />
+  <link rel="stylesheet" href="/static/style.css?v=progressfix1" />
+</head>
+<body>
+  <!-- 登录 / 注册（未登录时显示）：单卡片 + 分栏，减少干扰 -->
+  <div id="authGate" class="auth-gate">
+    <a class="skip-link auth-skip" href="#loginUser">跳到用户名</a>
+    <div class="auth-wrap">
+      <div class="auth-brand">
+        <span class="brand-mark" aria-hidden="true">✋</span>
+        <p class="auth-product-name">手心语</p>
+        <h1 class="auth-headline">登录或注册</h1>
+        <p class="auth-lede">每人一个账号，常用语、识别记录和上传的视频都只保存在您自己名下，不会混用。</p>
+      </div>
+
+      <div class="auth-guest-block">
+        <button type="button" class="btn btn-quiet btn-block" id="btnGuestEnter">先逛逛（游客模式）</button>
+        <p class="auth-guest-note">不注册也能试用。数据仅保存在当前浏览器会话，换电脑或清除站点数据后可能丢失。</p>
+      </div>
+
+      <div class="auth-panel card">
+        <div class="auth-tabs" role="tablist" aria-label="选择登录或注册">
+          <button type="button" class="auth-tab" role="tab" id="tabLogin" aria-selected="true" aria-controls="panelLogin" tabindex="0">
+            登录
+          </button>
+          <button type="button" class="auth-tab" role="tab" id="tabRegister" aria-selected="false" aria-controls="panelRegister" tabindex="-1">
+            注册
+          </button>
+        </div>
+
+        <p class="auth-error" id="authError" role="alert" aria-live="assertive" hidden></p>
+
+        <div class="auth-tabpanel" id="panelLogin" role="tabpanel" aria-labelledby="tabLogin">
+          <form id="formLogin" class="auth-form" novalidate>
+            <div class="field">
+              <label class="field-label" for="loginUser">用户名</label>
+              <input id="loginUser" name="username" class="input-lg" required autocomplete="username" maxlength="24" inputmode="text" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="loginPass">密码</label>
+              <div class="input-with-suffix">
+                <input id="loginPass" name="password" class="input-lg input-has-suffix" type="password" required autocomplete="current-password" maxlength="128" />
+                <button type="button" class="suffix-btn" id="btnLoginShowPass" aria-pressed="false" aria-label="显示密码">显示</button>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="btnLoginSubmit">进入手心语</button>
+            <p class="auth-switch-line">还没有账号？<button type="button" class="auth-text-btn" id="linkToRegister">去注册</button></p>
+          </form>
+        </div>
+
+        <div class="auth-tabpanel" id="panelRegister" role="tabpanel" aria-labelledby="tabRegister" hidden>
+          <form id="formRegister" class="auth-form" novalidate>
+            <p class="auth-field-hint" id="regUserHint">用户名 2～24 个字符，可用中文、字母、数字、下划线、英文点、横线。</p>
+            <div class="field">
+              <label class="field-label" for="regUser">用户名</label>
+              <input id="regUser" name="username" class="input-lg" required autocomplete="username" maxlength="24" inputmode="text" aria-describedby="regUserHint" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="regPass">密码（至少 6 位）</label>
+              <div class="input-with-suffix">
+                <input id="regPass" name="password" class="input-lg input-has-suffix" type="password" required autocomplete="new-password" maxlength="128" minlength="6" />
+                <button type="button" class="suffix-btn" id="btnRegShowPass" aria-pressed="false" aria-label="显示密码">显示</button>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="regPass2">再输入一遍密码</label>
+              <div class="input-with-suffix">
+                <input id="regPass2" class="input-lg input-has-suffix" type="password" required autocomplete="new-password" maxlength="128" />
+                <button type="button" class="suffix-btn" id="btnReg2ShowPass" aria-pressed="false" aria-label="显示确认密码">显示</button>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-accent btn-block" id="btnRegisterSubmit">创建账号并进入</button>
+            <p class="auth-switch-line">已有账号？<button type="button" class="auth-text-btn" id="linkToLogin">去登录</button></p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="appShell" class="app-shell" hidden>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+
+    <header class="app-header">
+      <div class="brand-block">
+        <span class="brand-mark" aria-hidden="true">✋</span>
+        <div>
+          <h1 class="brand-title">手心语</h1>
+          <p class="brand-tag">你好，<strong id="userDisplay"> </strong><span id="guestBadge" class="guest-badge" hidden> · 游客</span></p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <label class="font-control" title="字号">
+          <span class="sr-only">字号</span>
+          <span aria-hidden="true">字</span>
+          <input type="range" id="fontRange" min="100" max="140" step="5" value="118" />
+          <span aria-hidden="true">大</span>
+        </label>
+        <button type="button" class="icon-btn" id="btnContrast" title="高对比" aria-pressed="false">◐</button>
+        <button type="button" class="icon-btn" id="btnModelsOpen" aria-haspopup="dialog" aria-controls="modelsGuideDialog">模型</button>
+        <button type="button" class="icon-btn" id="btnHelpOpen" aria-haspopup="dialog" aria-controls="helpDialog">帮助</button>
+        <button type="button" class="icon-btn" id="btnLogout">退出</button>
+        <span class="status-dot" id="healthPill" role="status">连接中</span>
+      </div>
+    </header>
+
+    <div id="toastStack" class="toast-stack" aria-live="polite" aria-relevant="additions"></div>
+
+    <div class="partner-strip">
+      <label class="check">
+        <input type="checkbox" id="chkPartnerMirror" />
+        识别出字以后，给对方看<strong>全屏大字</strong>（点一下屏幕可关）
+      </label>
+    </div>
+
+    <main id="main" class="main-flow">
+      <section id="view-speak" class="view is-active speak-view" aria-labelledby="lbl-speak">
+        <header class="speak-header">
+          <h2 class="view-title" id="lbl-speak">点一下，替我说</h2>
+          <p class="lede speak-lede">写好内容即可播放或<strong>展示</strong>；「展示给对方」与<strong>听</strong>相同，都按左侧<strong>朗读语言</strong>（可开自动翻译）。右侧「我的话」里点<strong>听</strong>、<strong>展示</strong>或点卡片，逻辑一致。</p>
+        </header>
+        <div class="speak-layout">
+          <div class="speak-left-col">
+          <form id="formPhrase" class="card speak-composer">
+            <input type="hidden" id="phraseId" />
+            <input type="hidden" id="vocabEditId" />
+            <div class="speak-composer-main">
+            <div class="input-mode-tabs" role="tablist" aria-label="输入方式">
+              <button type="button" class="input-mode-tab is-active" id="btnInputKeyboard" role="tab" aria-selected="true" aria-controls="speakInputKeyboard">键盘</button>
+              <button type="button" class="input-mode-tab" id="btnInputHandwrite" role="tab" aria-selected="false" aria-controls="speakHandwritePanel">手写</button>
+            </div>
+            <div id="speakInputKeyboard" role="tabpanel">
+            <label class="field">
+              <span class="field-label">读出来的内容</span>
+              <textarea id="pSpeak" class="input-lg speak-textarea" rows="5" maxlength="2000" placeholder="输入要说给对方听的话…" aria-required="true"></textarea>
+            </label>
+            </div>
+            <div id="speakHandwritePanel" class="handwrite-panel" role="tabpanel" hidden>
+              <p class="field-hint" id="handwriteHint">在下方写字，点「识别填入」；字写大一些、笔画清楚。本地识别不清时会自动用智谱 GLM 识图（需 .env 中 ZHIPU_API_KEY）。</p>
+              <div class="handwrite-canvas-wrap">
+                <canvas id="speakHandCanvas" class="handwrite-canvas" width="640" height="220" aria-label="手写区"></canvas>
+              </div>
+              <div class="btn-row handwrite-actions">
+                <button type="button" class="btn btn-primary" id="btnHandRecognize">识别填入</button>
+                <button type="button" class="btn btn-quiet" id="btnHandClear">清空</button>
+                <button type="button" class="btn btn-accent" id="btnHandSpeak">识别后朗读</button>
+              </div>
+              <p id="handwriteStatus" class="field-hint" aria-live="polite"></p>
+            </div>
+            <div class="speak-action-bar">
+              <button type="button" class="btn btn-accent btn-speak-action" id="btnPreviewSpeak">🔊 播放声音</button>
+              <button type="button" class="btn btn-primary btn-speak-action" id="btnPreviewShow">👁 展示给对方</button>
+            </div>
+            <div class="speak-inline-row">
+              <label class="field speak-inline-field">
+                <span class="field-label">朗读语言</span>
+                <select id="pLang" class="input-lg">
+                  <option value="zh-CN">中文</option>
+                  <option value="en-US">英文</option>
+                  <option value="zh-TW">繁体中文</option>
+                </select>
+              </label>
+              <label class="field speak-inline-field">
+                <span class="field-label">朗读方式</span>
+                <select id="ttsEngineSelect" class="input-lg">
+                  <option value="browser">本机朗读</option>
+                  <option value="minimax">云语音 MiniMax</option>
+                </select>
+              </label>
+            </div>
+            </div>
+            <details class="speak-panel">
+              <summary class="speak-panel-summary">语音设置</summary>
+              <div class="speak-panel-body">
+            <div id="ttsMinimaxVoiceWrap" class="field" hidden>
+              <span class="field-label">云语音音色</span>
+              <select id="ttsMinimaxVoice" class="input-lg"></select>
+              <p class="field-hint" id="ttsMinimaxVoiceHint">中文朗读请选「中文·」音色；英文请选「英文·」音色。</p>
+            </div>
+            <label class="check speak-check">
+              <input type="checkbox" id="chkTtsTranslate" checked />
+              朗读前自动翻译（语言与正文不一致时，DeepSeek）
+            </label>
+            <label class="check speak-check">
+              <input type="checkbox" id="chkTtsSound" checked />
+              朗读时播放声音
+            </label>
+            <button type="button" class="btn btn-quiet btn-block" id="btnStopTts">停止朗读</button>
+            <button type="button" class="btn btn-quiet btn-block" id="btnTestTranslate">测试 DeepSeek 翻译</button>
+            <p id="translateTestResult" class="field-hint translate-test-result" hidden></p>
+              </div>
+            </details>
+            <details class="speak-panel" open>
+              <summary class="speak-panel-summary" id="formPhraseTitle">存到我的话</summary>
+              <div class="speak-panel-body">
+            <label class="check speak-check">
+              <input type="checkbox" id="chkAlsoSignVocab" />
+              同时记入手语词（方便对照练习，右侧「手语词」里查看）
+            </label>
+            <label class="field" id="pSignNoteWrap" hidden>
+              <span class="field-label">手语备注（可选）</span>
+              <input id="pSignNote" class="input-lg" maxlength="500" placeholder="怎么打、含义、易混字…" autocomplete="off" />
+            </label>
+            <label class="field">
+              <span class="field-label">按钮上显示（可选）</span>
+              <input id="pLabel" class="input-lg" maxlength="80" placeholder="留空则用朗读内容前几字作标题" autocomplete="off" />
+            </label>
+            <div class="speak-inline-row">
+              <label class="field speak-inline-field">
+                <span class="field-label">分类</span>
+                <input id="pCategory" class="input-lg" maxlength="40" placeholder="出行 / 医院" autocomplete="off" />
+              </label>
+              <label class="field speak-inline-field">
+                <span class="field-label">用途</span>
+                <select id="pTag" class="input-lg">
+                  <option value="">平常</option>
+                  <option value="紧急">紧急</option>
+                </select>
+              </label>
+            </div>
+            <div id="pTtsVoiceWrap" class="field" hidden>
+              <span class="field-label">本条单独音色（可选）</span>
+              <select id="pTtsVoice" class="input-lg"></select>
+            </div>
+            <label class="field speak-field-narrow">
+              <span class="field-label">排序</span>
+              <input id="pOrder" class="input-lg" type="number" value="0" />
+            </label>
+            <div class="btn-row speak-save-row">
+              <button type="submit" class="btn btn-primary">存起来</button>
+              <button type="button" class="btn btn-quiet" id="btnResetPhrase">清空表单</button>
+            </div>
+              </div>
+            </details>
+          </form>
+            <details class="speak-panel REMOVE_VOCAB" id="vocabPanel" hidden>
+              <summary class="speak-panel-summary" id="formVocabTitle">手语词本</summary>
+              <div class="speak-panel-body">
+                <p class="field-hint">记常用手语词，方便自己查看；与「常用语」分开，不用于朗读按钮。</p>
+                <form id="formVocab">
+                  <input type="hidden" id="vocabId" />
+                  <label class="field">
+                    <span class="field-label">词</span>
+                    <input id="vWord" class="input-lg" maxlength="120" aria-required="true" />
+                  </label>
+                  <div class="speak-inline-row">
+                    <label class="field speak-inline-field">
+                      <span class="field-label">中文 / 英文</span>
+                      <select id="vLang" class="input-lg">
+                        <option value="zh">中文</option>
+                        <option value="en">英文</option>
+                      </select>
+                    </label>
+                    <label class="field speak-inline-field">
+                      <span class="field-label">分类</span>
+                      <input id="vCat" class="input-lg" maxlength="60" autocomplete="off" />
+                    </label>
+                  </div>
+                  <label class="field">
+                    <span class="field-label">说明（可选）</span>
+                    <textarea id="vDesc" class="input-lg" rows="2" maxlength="2000"></textarea>
+                  </label>
+                  <label class="field">
+                    <span class="field-label">怎么拍更清楚（可选）</span>
+                    <input id="vHint" class="input-lg" maxlength="500" />
+                  </label>
+                  <div class="btn-row speak-save-row">
+                    <button type="submit" class="btn btn-primary">存起来</button>
+                    <button type="button" class="btn btn-quiet" id="btnResetVocab">清空</button>
+                    <button type="button" class="btn btn-quiet" id="btnNewVocab">新词</button>
+                  </div>
+                </form>
+                <div class="table-scroll speak-vocab-scroll">
+                  <table class="data-table" id="tableVocab">
+                    <thead><tr><th>词</th><th>语</th><th>类</th><th></th></tr></thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </details>
+          </div>
+          <aside class="card speak-library phrase-list-card">
+            <div class="speak-library-head">
+              <h3 class="card-title">我的话</h3>
+              <p id="phraseListMeta" class="phrase-list-meta muted" aria-live="polite"></p>
+            </div>
+            <div class="phrase-toolbar speak-library-toolbar">
+              <input type="search" id="phraseSearch" class="input-lg" placeholder="搜索常用语" autocomplete="off" aria-label="搜索常用语" />
+              <select id="phraseCategoryFilter" class="input-lg" aria-label="按分类筛选">
+                <option value="">全部分类</option>
+              </select>
+            </div>
+            <div id="phraseBoardWrap" class="phrase-board-wrap">
+              <div id="phraseBoard" class="phrase-grid" role="list"></div>
+            </div>
+            <p id="phraseListEmpty" class="phrase-list-empty muted" hidden>没有匹配的常用语</p>
+          </aside>
+        </div>
+      </section>
+
+      <section id="view-live" class="view" aria-labelledby="lbl-live">
+        <h2 class="view-title" id="lbl-live">对着摄像头打手语</h2>
+        <p class="lede">
+          点「开始」后<strong>每录完一段会自动识别</strong>：上方为大屏预览，下方左侧为选项，右侧为译文与日志。全身入镜请稍远；默认约 6 秒一段；短片段仅 ONNX 容易飘字，需要更准确请用「传视频」整段或选混合。
+        </p>
+        <div class="live-dashboard">
+          <div class="card live-stage-card">
+            <div class="live-camera-stage" aria-label="摄像头预览">
+              <video id="liveVideo" class="live-stage-video" playsinline autoplay muted></video>
+            </div>
+          </div>
+          <div class="live-dashboard-bottom">
+            <div class="card live-config-card">
+              <label class="field">
+                <span class="field-label">视频里是哪种手语？</span>
+                <div class="model-quick-pick" role="group" aria-label="手语语种">
+                  <button type="button" class="btn btn-quiet model-quick-pick-btn is-active" data-target="live" data-lang="zh">中文手语</button>
+                  <button type="button" class="btn btn-quiet model-quick-pick-btn" data-target="live" data-lang="en">英文手语</button>
+                </div>
+                <select id="modelSelectLive" class="input-lg" aria-describedby="modelHintLive">
+                  <optgroup label="中文手语视频（输出中文）">
+                    <option value="openesl" selected>中文手语 · OpenESL/VECSL</option>
+                    <option value="csl_daily">中文手语 · CSL-Daily</option>
+                  </optgroup>
+                  <optgroup label="英文手语视频（输出英文）">
+                    <option value="openasl">英文手语 · OpenASL</option>
+                    <option value="how2sign">英文手语 · How2Sign</option>
+                  </optgroup>
+                </select>
+              </label>
+              <p id="modelHintLive" class="model-hint field-hint" aria-live="polite"></p>
+              <label class="field">
+                <span class="field-label">识别方式</span>
+                <select id="recognitionModeLive" class="input-lg" aria-describedby="recognitionModeHintLive">
+                  <option value="onnx" selected>仅 ONNX（手语模型主路径）</option>
+                  <option value="ocr">仅 OCR（硬字幕）</option>
+                  <option value="hybrid">混合（手语 ONNX + 字幕 OCR + AI 仲裁）</option>
+                </select>
+              </label>
+              <p id="recognitionModeHintLive" class="field-hint">拍一下：画面<strong>有硬字幕</strong>请选「仅 OCR」（约 5～15 秒）；<strong>纯手语</strong>选「仅 ONNX」或「混合」（约 20～60 秒，已开快路径）。勿同时勾选「连续自动出字」。</p>
+              <label class="check"><input type="checkbox" id="liveContinuousRt" /> 连续自动出字（实时字幕，短片段识别）</label>
+              <div id="liveRtOptions" class="live-rt-options" hidden>
+                <label class="field">
+                  <span class="field-label">每段约几毫秒（3～8 秒，仅 ONNX 建议 ≥5 秒）</span>
+                  <input id="liveSliceMs" class="input-lg" type="number" value="4000" min="3000" max="8000" step="100" />
+                </label>
+                <label class="check"><input type="checkbox" id="liveRtAppendHistory" /> 同时写入「记录」</label>
+                <span class="video-speak-label">每段朗读</span>
+                <label class="check"><input type="checkbox" id="liveRtSpeakBrowser" /> 本机</label>
+                <label class="check"><input type="checkbox" id="liveRtSpeakMinimax" /> MiniMax</label>
+              </div>
+              <label class="field live-segment-field">
+                <span class="field-label">每段录几秒（未开「连续自动出字」时）</span>
+                <input id="liveSegmentSec" class="input-lg" type="number" value="6" min="4" max="30" />
+              </label>
+              <label class="check live-segment-only"><input type="checkbox" id="liveLoop" checked /> 一直录，直到我按停</label>
+              <label class="check live-segment-only"><input type="checkbox" id="liveAutoJob" /> 每段同时记入「记录」</label>
+              <div class="live-segment-only video-inline-opts">
+                <span class="video-speak-label">每段朗读</span>
+                <label class="check"><input type="checkbox" id="liveSegSpeakBrowser" /> 本机</label>
+                <label class="check"><input type="checkbox" id="liveSegSpeakMinimax" /> MiniMax</label>
+              </div>
+              <div class="btn-row live-start-row">
+                <button type="button" class="btn btn-primary btn-block" id="btnLiveStart">开始</button>
+                <button type="button" class="btn btn-danger btn-block" id="btnLiveStop" disabled>停</button>
+              </div>
+              <p class="status-line" id="liveStatus"></p>
+            </div>
+            <div class="card live-output-card">
+              <h3 class="card-title">本段译文</h3>
+              <div
+                id="liveSegmentResult"
+                class="result-box live-segment-result text-peek-trigger live-segment-only"
+                role="status"
+                aria-live="polite"
+                title="点击查看完整文稿"
+              >
+                开始录制后，译文会显示在这里（每段约 1～3 分钟）
+              </div>
+              <h3 class="card-title live-log-title">过程日志</h3>
+              <pre id="liveLog" class="log-box live-log-body text-peek-trigger" aria-live="polite" title="点击查看完整日志"></pre>
+              <div id="liveSubtitlePanel" class="subtitle-panel" hidden>
+                <h4 class="subtitle-panel-title">实时字幕</h4>
+                <p id="liveSubtitleCurrent" class="rt-current text-peek-trigger" role="status" aria-live="polite" title="点击查看当前句"></p>
+                <div id="liveSubtitleLines" class="rt-lines log-box text-peek-trigger" role="log" aria-relevant="additions" title="点击某条或空白处查看全文"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-video" class="view" aria-labelledby="lbl-video">
+        <h2 class="view-title" id="lbl-video">上传手语视频</h2>
+          <p class="lede">先上传；<strong>整段识别</strong>与<strong>边播</strong>共用下方一块输出板。<strong>仅 ONNX</strong> 时请选与视频一致的手语模型，并上传约 <strong>10～30 秒</strong>、双手入镜的整段；边播短片段常会错句。混合模式需 ffmpeg。</p>
+
+        <div class="card video-setup-card">
+          <label class="upload-zone">
+            <span class="upload-icon" aria-hidden="true">⬆</span>
+            <span class="field-label">选择视频文件</span>
+            <input type="file" id="fileVideo" accept="video/*" class="visually-hidden" />
+            <span id="filePickLabel" class="muted">未选择文件</span>
+          </label>
+          <p class="status-line" id="uploadStatus"></p>
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" id="btnUpload">上传视频</button>
+          </div>
+          <div class="video-settings-row">
+            <label class="field">
+              <span class="field-label">手语模型</span>
+              <div class="model-quick-pick" role="group" aria-label="手语语种">
+                <button type="button" class="btn btn-quiet model-quick-pick-btn is-active" data-target="video" data-lang="zh">中文</button>
+                <button type="button" class="btn btn-quiet model-quick-pick-btn" data-target="video" data-lang="en">英文</button>
+              </div>
+              <select id="modelSelect" class="input-lg" aria-describedby="modelHintVideo">
+                <optgroup label="中文手语">
+                  <option value="openesl" selected>OpenESL/VECSL</option>
+                  <option value="csl_daily">CSL-Daily</option>
+                </optgroup>
+                <optgroup label="英文手语">
+                  <option value="openasl">OpenASL</option>
+                  <option value="how2sign">How2Sign</option>
+                </optgroup>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field-label">识别方式</span>
+              <select id="recognitionMode" class="input-lg" aria-describedby="recognitionModeHint">
+                <option value="onnx" selected>仅 ONNX（手语模型主路径）</option>
+                <option value="ocr">仅 OCR（硬字幕）</option>
+                <option value="hybrid">混合（手语 ONNX + 字幕 OCR + AI 仲裁）</option>
+              </select>
+            </label>
+          </div>
+          <p id="modelHintVideo" class="model-hint field-hint" aria-live="polite"></p>
+            <p id="recognitionModeHint" class="field-hint">视频<strong>有底部硬字幕</strong>（新闻/教程）：请选「仅 OCR」或「混合」。仅 ONNX 读手语动作，不读字幕。边播在仅 ONNX 时也会尝试读字幕，但整段+混合最准。中文选 CSL-Daily/OpenESL。</p>
+        </div>
+
+        <div class="layout-split video-layout-split">
+          <div class="card video-col-full video-col-compact">
+            <h3 class="card-title">整段识别 · 主结果（长视频自动按约 10 秒分段，每段一句）</h3>
+            <div class="video-inline-opts">
+              <label class="check"><input type="checkbox" id="chkJobHistory" checked /> 记入「记录」</label>
+              <span class="video-speak-label">完成后朗读</span>
+              <label class="check"><input type="checkbox" id="videoJobSpeakBrowser" /> 本机</label>
+              <label class="check"><input type="checkbox" id="videoJobSpeakMinimax" /> MiniMax</label>
+            </div>
+            <button type="button" class="btn btn-accent btn-block" id="btnRunVideoJob" disabled>开始整段识别</button>
+            <div id="jobProgressBox" class="job-progress-box" hidden aria-live="polite">
+              <p id="jobProgressMessage" class="job-progress-message"></p>
+              <div class="job-progress-track"><div id="jobProgressBarFill" class="job-progress-fill"></div></div>
+            </div>
+            <p class="status-line" id="jobStatus"></p>
+            <details id="jobMetaDetails" class="recognition-meta" hidden>
+              <summary>技术详情（OCR / ONNX / 混合说明）</summary>
+              <p id="jobBurnedSubtitle" class="result-box result-box--subtitle" hidden></p>
+              <p id="jobHybridDetail" class="field-hint job-hybrid-detail" hidden></p>
+              <p id="jobQualityNote" class="field-hint job-quality-note" hidden></p>
+            </details>
+            <p id="jobError" class="error-line" hidden></p>
+            <details class="video-manual-inline">
+              <summary>补录 / 手写</summary>
+              <div class="handwrite-canvas-wrap handwrite-canvas-wrap--compact">
+                <canvas id="manualHandCanvas" class="handwrite-canvas" width="480" height="120" aria-label="手写区"></canvas>
+              </div>
+              <div class="btn-row handwrite-actions">
+                <button type="button" class="btn btn-primary" id="btnManualHandRecognize">识别填入</button>
+                <button type="button" class="btn btn-quiet" id="btnManualHandClear">清空</button>
+              </div>
+              <label class="field">
+                <span class="field-label">写下来的话</span>
+                <textarea id="manualText" class="input-lg" rows="2" required></textarea>
+              </label>
+              <label class="field">
+                <span class="field-label">备注</span>
+                <input id="manualNote" class="input-lg" maxlength="500" />
+              </label>
+              <button type="button" class="btn btn-primary btn-block" id="btnSaveManual">存到记录</button>
+            </details>
+          </div>
+
+          <div class="card video-col-rt video-col-compact">
+            <h3 class="card-title">边播边出字 · 预览</h3>
+            <p class="lede small muted">按段排队、不丢段；<strong>预览用</strong>，准确度低于左侧整段。建议每段 7～10 秒；要准结果请用「整段识别」。</p>
+            <video id="videoFilePreview" class="preview-video" playsinline controls muted></video>
+            <label class="field">
+              <span class="field-label">每段时长（秒）</span>
+              <input id="videoSliceMs" class="input-lg" type="number" value="7" min="6" max="10" step="0.5" />
+            </label>
+            <label class="check"><input type="checkbox" id="videoRtAppendHistory" /> 每段记入「记录」</label>
+            <span class="video-speak-label">每段朗读</span>
+            <label class="check"><input type="checkbox" id="videoRtSpeakBrowser" /> 本机</label>
+            <label class="check"><input type="checkbox" id="videoRtSpeakMinimax" /> MiniMax</label>
+            <div class="btn-row">
+              <button type="button" class="btn btn-primary btn-block" id="btnVideoRtStart">开始边播</button>
+              <button type="button" class="btn btn-danger btn-block" id="btnVideoRtStop" disabled>停止</button>
+            </div>
+            <p class="status-line" id="videoRtStatus"></p>
+          </div>
+        </div>
+
+        <div class="card video-shared-output-card">
+          <p class="field-label">识别输出（整段与边播共用 · 点某条或空白处可看全文）</p>
+          <div id="videoJobProgressBox" class="job-progress-box video-job-progress" hidden aria-live="polite">
+            <p id="videoJobProgressMessage" class="job-progress-message">识别进度会显示在这里（整段或边播）</p>
+            <div class="job-progress-track"><div id="videoJobProgressBarFill" class="job-progress-fill" style="width: 0%"></div></div>
+          </div>
+          <div
+            id="videoRecognitionLog"
+            class="rt-lines log-box text-peek-trigger video-recognition-log"
+            role="log"
+            aria-relevant="additions"
+            title="点击某条或空白处查看全文"
+          >
+            <p class="video-log-placeholder muted">识别完成后，文字会显示在这里</p>
+          </div>
+        </div>
+
+      </section>
+      <section id="view-history" class="view" aria-labelledby="lbl-history">
+        <h2 class="view-title" id="lbl-history">识别记录</h2>
+        <p class="lede">这里保存识别出来的字句，可以点「读」再听一遍。</p>
+        <div class="card table-card">
+          <div class="table-scroll">
+            <table class="data-table" id="tableHist">
+              <thead><tr><th>时间</th><th>语言</th><th>文件</th><th>内容</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="dock" aria-label="底部功能">
+      <button type="button" class="dock-btn is-active" data-view="speak">
+        <span class="dock-ic" aria-hidden="true">💬</span>
+        <span>说话</span>
+      </button>
+      <button type="button" class="dock-btn" data-view="live">
+        <span class="dock-ic" aria-hidden="true">📷</span>
+        <span>拍一下</span>
+      </button>
+      <button type="button" class="dock-btn" data-view="video">
+        <span class="dock-ic" aria-hidden="true">🎬</span>
+        <span>传视频</span>
+      </button>
+      <button type="button" class="dock-btn" data-view="history">
+        <span class="dock-ic" aria-hidden="true">📋</span>
+        <span>记录</span>
+      </button>
+    </nav>
+
+    <div id="helpDialog" class="dialog-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <div class="dialog">
+        <h2 id="helpTitle" class="dialog-title">怎么用</h2>
+        <ul class="dialog-list">
+          <li>可<strong>注册 / 登录</strong>保存长期数据，也可用<strong>游客模式</strong>先试用（数据随浏览器会话）。</li>
+          <li><strong>拍一下</strong>：上方大屏预览；下方左为选项、右为译文与日志。可分段转字，或勾选<strong>连续自动出字</strong>。</li>
+          <li><strong>传视频</strong>：左侧整段识别（可自选 ONNX / OCR / 混合），右侧边播仅本地预览；漏句在「补录」区保存。</li>
+          <li>
+            <strong>说话</strong>：写好可先「播放声音」或「展示给对方」；可存<strong>常用语</strong>或<strong>手语词本</strong>。
+          </li>
+          <li>
+            <strong>识别模型</strong>：本应用部署的是 <strong>Uni-Sign → ONNX</strong>（普通摄像头）。英文连续句选 <strong>OpenASL</strong>，中文选 <strong>CSL-Daily</strong>。点顶部「<strong>模型</strong>」查看说明；<strong>OpenESL</strong> 为事件相机研究项目，当前未接入。
+          </li>
+        </ul>
+        <button type="button" class="btn btn-primary btn-block" id="btnHelpClose">知道了</button>
+      </div>
+    </div>
+
+    <div id="modelsGuideDialog" class="dialog-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="modelsGuideTitle">
+      <div class="dialog dialog-wide">
+        <h2 id="modelsGuideTitle" class="dialog-title">手语模型说明</h2>
+        <p id="modelsGuideIntro" class="field-hint"></p>
+        <div id="modelsGuideDeployed" class="models-guide-section"></div>
+        <div id="modelsGuideReference" class="models-guide-section"></div>
+        <p class="field-hint muted">完整文档见项目 <code>docs/reference/</code> 目录。</p>
+        <button type="button" class="btn btn-primary btn-block" id="btnModelsGuideClose">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="textPeekDialog" class="dialog-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="textPeekTitle">
+    <div class="dialog text-peek-dialog">
+      <h2 id="textPeekTitle" class="dialog-title">完整文稿</h2>
+      <p id="textPeekMeta" class="text-peek-meta muted" hidden></p>
+      <div id="textPeekBody" class="text-peek-body" tabindex="0"></div>
+      <button type="button" class="btn btn-primary btn-block" id="btnTextPeekClose">关闭</button>
+    </div>
+  </div>
+
+  <div id="phraseShowDialog" class="dialog-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="phraseShowTitle">
+    <div class="dialog phrase-show-dialog">
+      <h2 id="phraseShowTitle" class="dialog-title">给对方看</h2>
+      <p id="phraseShowSub" class="phrase-show-sub muted" hidden></p>
+      <p id="phraseShowText" class="phrase-show-text"></p>
+      <button type="button" class="btn btn-primary btn-block" id="btnPhraseShowClose">关闭</button>
+    </div>
+  </div>
+
+  <div id="partnerMirror" class="partner-mirror" hidden role="dialog" aria-modal="true">
+    <div class="partner-mirror-inner">
+      <p id="partnerMirrorText" class="partner-mirror-text"></p>
+      <button type="button" class="btn btn-primary btn-block" id="btnPartnerClose">关闭</button>
+    </div>
+  </div>
+
+  <script src="/static/app.js?v=historyfix1" type="module"></script>
+</body>
+</html>

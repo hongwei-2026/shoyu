@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0B6E5E" />
+  <title>手心语 — 手语助手</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <!-- 登录 / 注册（未登录时显示） -->
+  <div id="authGate" class="auth-gate">
+    <div class="auth-wrap">
+      <div class="auth-brand">
+        <span class="brand-mark" aria-hidden="true">✋</span>
+        <h1 class="brand-title">手心语</h1>
+        <p class="auth-lede">每人一个账号，常用语、记录和上传的视频都只保存在您自己名下。</p>
+      </div>
+      <p class="auth-error" id="authError" hidden></p>
+      <div class="auth-grid">
+        <form id="formLogin" class="card auth-card">
+          <h2 class="card-title">登录</h2>
+          <label class="field">
+            <span class="field-label">用户名</span>
+            <input id="loginUser" class="input-lg" required autocomplete="username" maxlength="24" />
+          </label>
+          <label class="field">
+            <span class="field-label">密码</span>
+            <input id="loginPass" class="input-lg" type="password" required autocomplete="current-password" maxlength="128" />
+          </label>
+          <button type="submit" class="btn btn-primary btn-block">进入</button>
+        </form>
+        <form id="formRegister" class="card auth-card">
+          <h2 class="card-title">注册</h2>
+          <label class="field">
+            <span class="field-label">用户名（2～24 字）</span>
+            <input id="regUser" class="input-lg" required autocomplete="off" maxlength="24" />
+          </label>
+          <label class="field">
+            <span class="field-label">密码（至少 6 位）</span>
+            <input id="regPass" class="input-lg" type="password" required autocomplete="new-password" maxlength="128" />
+          </label>
+          <label class="field">
+            <span class="field-label">再输一遍密码</span>
+            <input id="regPass2" class="input-lg" type="password" required autocomplete="new-password" maxlength="128" />
+          </label>
+          <button type="submit" class="btn btn-accent btn-block">创建账号</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="appShell" class="app-shell" hidden>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+
+    <header class="app-header">
+      <div class="brand-block">
+        <span class="brand-mark" aria-hidden="true">✋</span>
+        <div>
+          <h1 class="brand-title">手心语</h1>
+          <p class="brand-tag">你好，<strong id="userDisplay"> </strong></p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <label class="font-control" title="字号">
+          <span class="sr-only">字号</span>
+          <span aria-hidden="true">字</span>
+          <input type="range" id="fontRange" min="100" max="140" step="5" value="118" />
+          <span aria-hidden="true">大</span>
+        </label>
+        <button type="button" class="icon-btn" id="btnContrast" title="高对比" aria-pressed="false">◐</button>
+        <button type="button" class="icon-btn" id="btnHelpOpen" aria-haspopup="dialog" aria-controls="helpDialog">帮助</button>
+        <button type="button" class="icon-btn" id="btnLogout">退出</button>
+        <span class="status-dot" id="healthPill" role="status">连接中</span>
+      </div>
+    </header>
+
+    <p class="tip-strip" id="dailyTip" role="status"></p>
+
+    <div class="notice-banner" id="systemBanner" role="status" hidden></div>
+
+    <div class="partner-strip">
+      <label class="check">
+        <input type="checkbox" id="chkPartnerMirror" />
+        识别出字以后，给对方看<strong>全屏大字</strong>（点一下屏幕可关）
+      </label>
+    </div>
+
+    <main id="main" class="main-flow">
+      <section id="view-speak" class="view is-active" aria-labelledby="lbl-speak">
+        <h2 class="view-title" id="lbl-speak">点一下，替我说</h2>
+        <p class="lede">把常说的话存成大按钮；点一下，电脑会读出来（请装好系统里的中文语音）。带「紧急」的话会排在最前面。</p>
+        <div class="layout-split">
+          <form id="formPhrase" class="card form-card">
+            <h3 class="card-title" id="formPhraseTitle">添加一句话</h3>
+            <input type="hidden" id="phraseId" />
+            <label class="field">
+              <span class="field-label">按钮上写</span>
+              <input id="pLabel" class="input-lg" required maxlength="80" placeholder="例如：谢谢" autocomplete="off" />
+            </label>
+            <label class="field">
+              <span class="field-label">读出来的内容</span>
+              <textarea id="pSpeak" class="input-lg" rows="4" required maxlength="2000" placeholder="整段话会读给对方听"></textarea>
+            </label>
+            <label class="field">
+              <span class="field-label">用途</span>
+              <select id="pTag" class="input-lg">
+                <option value="">平常用</option>
+                <option value="紧急">紧急（排最前）</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field-label">朗读语言</span>
+              <input id="pLang" class="input-lg" list="langList" maxlength="32" value="zh-CN" />
+              <datalist id="langList">
+                <option value="zh-CN"></option>
+                <option value="zh-TW"></option>
+                <option value="en-US"></option>
+              </datalist>
+            </label>
+            <label class="field">
+              <span class="field-label">排序（数字小的更靠前）</span>
+              <input id="pOrder" class="input-lg" type="number" value="0" />
+            </label>
+            <div class="btn-row">
+              <button type="submit" class="btn btn-primary btn-block">存起来</button>
+              <button type="button" class="btn btn-quiet" id="btnResetPhrase">清空</button>
+              <button type="button" class="btn btn-quiet" id="btnStopTts">停</button>
+            </div>
+          </form>
+          <div class="card">
+            <h3 class="card-title">我的话</h3>
+            <div id="phraseBoard" class="phrase-grid" role="list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-live" class="view" aria-labelledby="lbl-live">
+        <h2 class="view-title" id="lbl-live">对着摄像头打手语</h2>
+        <p class="lede">每隔几秒录一小段；需要时打开「自动转成字」，由服务器慢慢识别（可能要等一会儿）。</p>
+        <div class="layout-split">
+          <div class="card">
+            <video id="liveVideo" class="preview-video" playsinline autoplay muted></video>
+            <label class="field">
+              <span class="field-label">视频里是哪种手语</span>
+              <select id="modelSelectLive" class="input-lg">
+                <option value="csl_daily">中文手语</option>
+                <option value="how2sign">英文手语（一）</option>
+                <option value="openasl">英文手语（二）</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field-label">每段录几秒</span>
+              <input id="liveSegmentSec" class="input-lg" type="number" value="4" min="2" max="30" />
+            </label>
+            <label class="check"><input type="checkbox" id="liveLoop" checked /> 一直录，直到我按停</label>
+            <label class="check"><input type="checkbox" id="liveAutoJob" /> 每段录完自动转成字</label>
+            <label class="check"><input type="checkbox" id="liveSpeakResult" /> 出字后自动读出来</label>
+            <div class="btn-row">
+              <button type="button" class="btn btn-primary btn-block" id="btnLiveStart">开始</button>
+              <button type="button" class="btn btn-danger btn-block" id="btnLiveStop" disabled>停</button>
+            </div>
+            <p class="status-line" id="liveStatus"></p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">过程</h3>
+            <pre id="liveLog" class="log-box" aria-live="polite"></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-video" class="view" aria-labelledby="lbl-video">
+        <h2 class="view-title" id="lbl-video">上传手语视频</h2>
+        <p class="lede">已经录好的视频也可以上传；点「开始识别」，请耐心等待。</p>
+        <div class="layout-split">
+          <div class="card">
+            <label class="upload-zone">
+              <span class="upload-icon" aria-hidden="true">⬆</span>
+              <span class="field-label">选择视频文件</span>
+              <input type="file" id="fileVideo" accept="video/*" class="visually-hidden" />
+              <span id="filePickLabel" class="muted">未选择文件</span>
+            </label>
+            <p class="status-line" id="uploadStatus"></p>
+            <label class="field">
+              <span class="field-label">视频里是哪种手语</span>
+              <select id="modelSelect" class="input-lg">
+                <option value="csl_daily">中文手语</option>
+                <option value="how2sign">英文手语（一）</option>
+                <option value="openasl">英文手语（二）</option>
+                <option value="wlasl_islr">只要一个词（需单独配置）</option>
+              </select>
+            </label>
+            <label class="check"><input type="checkbox" id="chkJobHistory" checked /> 把结果记在「记录」里</label>
+            <div class="btn-row">
+              <button type="button" class="btn btn-primary btn-block" id="btnUpload">上传</button>
+              <button type="button" class="btn btn-accent btn-block" id="btnRunVideoJob" disabled>开始识别</button>
+            </div>
+            <p class="status-line" id="jobStatus"></p>
+            <div id="jobResult" class="result-box" hidden></div>
+            <p id="jobError" class="error-line" hidden></p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">自己打字保存</h3>
+            <p class="lede small">如果自动识别没有结果，可以在这里手写。</p>
+            <label class="field">
+              <span class="field-label">写下来的话</span>
+              <textarea id="manualText" class="input-lg" rows="5" required></textarea>
+            </label>
+            <label class="field">
+              <span class="field-label">备注（可不填）</span>
+              <input id="manualNote" class="input-lg" maxlength="500" />
+            </label>
+            <button type="button" class="btn btn-primary btn-block" id="btnSaveManual">存到记录</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-words" class="view" aria-labelledby="lbl-words">
+        <h2 class="view-title" id="lbl-words">生字词本</h2>
+        <p class="lede">记一些常用手语词，方便自己查看。</p>
+        <div class="layout-split">
+          <form id="formVocab" class="card form-card">
+            <h3 class="card-title" id="formVocabTitle">新词</h3>
+            <input type="hidden" id="vocabId" />
+            <label class="field">
+              <span class="field-label">词</span>
+              <input id="vWord" class="input-lg" required maxlength="120" />
+            </label>
+            <label class="field">
+              <span class="field-label">中文 / 英文</span>
+              <select id="vLang" class="input-lg">
+                <option value="zh">中文</option>
+                <option value="en">英文</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field-label">分类</span>
+              <input id="vCat" class="input-lg" maxlength="60" />
+            </label>
+            <label class="field">
+              <span class="field-label">说明</span>
+              <textarea id="vDesc" class="input-lg" rows="3" maxlength="2000"></textarea>
+            </label>
+            <label class="field">
+              <span class="field-label">怎么拍更清楚</span>
+              <input id="vHint" class="input-lg" maxlength="500" />
+            </label>
+            <div class="btn-row">
+              <button type="submit" class="btn btn-primary btn-block">存起来</button>
+              <button type="button" class="btn btn-quiet" id="btnResetVocab">清空</button>
+            </div>
+          </form>
+          <div class="card table-card">
+            <div class="table-head"><h3 class="card-title">词表</h3><button type="button" class="btn btn-quiet" id="btnNewVocab">新词</button></div>
+            <div class="table-scroll">
+              <table class="data-table" id="tableVocab">
+                <thead><tr><th>词</th><th>语</th><th>类</th><th></th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-history" class="view" aria-labelledby="lbl-history">
+        <h2 class="view-title" id="lbl-history">识别记录</h2>
+        <p class="lede">这里保存识别出来的字句，可以点「读」再听一遍。</p>
+        <div class="card table-card">
+          <div class="table-scroll">
+            <table class="data-table" id="tableHist">
+              <thead><tr><th>时间</th><th>语言</th><th>文件</th><th>内容</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="dock" aria-label="底部功能">
+      <button type="button" class="dock-btn is-active" data-view="speak">
+        <span class="dock-ic" aria-hidden="true">💬</span>
+        <span>说话</span>
+      </button>
+      <button type="button" class="dock-btn" data-view="live">
+        <span class="dock-ic" aria-hidden="true">📷</span>
+        <span>拍一下</span>
+      </button>
+      <button type="button" class="dock-btn" data-view="video">
+        <span class="dock-ic" aria-hidden="true">🎬</span>
+        <span>传视频</span>
+      </button>
+      <button type="button" class="dock-btn" data-view="words">
+        <span class="dock-ic" aria-hidden="true">📖</span>
+        <span>生字词</span>
+      </button>
+      <button type="button" class="dock-btn" data-view="history">
+        <span class="dock-ic" aria-hidden="true">📋</span>
+        <span>记录</span>
+      </button>
+    </nav>
+
+    <div id="helpDialog" class="dialog-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <div class="dialog">
+        <h2 id="helpTitle" class="dialog-title">怎么用</h2>
+        <ul class="dialog-list">
+          <li>先<strong>注册</strong>或<strong>登录</strong>，您的话、词表和视频都只保存在自己的账号里。</li>
+          <li><strong>说话</strong>：先写好，再点大按钮，用电脑读出来。</li>
+          <li><strong>拍一下 / 传视频</strong>：选好语言；识别可能要几分钟。</li>
+          <li>「紧急」常用语会排在最上面，急用时更快点到。</li>
+        </ul>
+        <button type="button" class="btn btn-primary btn-block" id="btnHelpClose">知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="partnerMirror" class="partner-mirror" hidden role="dialog" aria-modal="true">
+    <div class="partner-mirror-inner">
+      <p id="partnerMirrorText" class="partner-mirror-text"></p>
+      <button type="button" class="btn btn-primary btn-block" id="btnPartnerClose">关闭</button>
+    </div>
+  </div>
+
+  <script src="/static/app.js" type="module"></script>
+</body>
+</html>

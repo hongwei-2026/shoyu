@@ -1,0 +1,24 @@
+手心语 — 发布包（无 API 密钥）
+生成时间：2026-05-18T22:56:23
+
+【包含】
+- web/ 应用源码
+- docs/ 文档（含 GITHUB.md 上传说明）
+- skills/shouxinyu/ Cursor Agent Skill
+- models/Uni-Sign-repo/onnx_tools 与 demo 脚本（无大权重）
+- tools/ffmpeg/bin/（Windows）
+- .env.example（模板，无真实 Key）
+- requirements.txt、README.md
+
+【不包含】
+- .env（请本地 Copy-Item .env.example .env 后自行填写密钥）
+- ONNX 权重 models/_extract、models/*.tar.gz（>80MB 需单独拷贝）
+- data/ 用户库、uploads/ 上传文件
+
+【使用】
+1. pip install -r requirements.txt
+2. Copy-Item .env.example .env 并编辑
+3. 将模型 tar.gz 放入 models/ 目录
+4. python -m uvicorn web.app:app --host 127.0.0.1 --port 8000
+
+GitHub 上传说明见 docs/GITHUB.md

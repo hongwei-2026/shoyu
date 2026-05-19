@@ -1,0 +1,36 @@
+# 本地密钥与虚拟环境（勿提交）
+.env
+.env.*
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.Python
+
+# 运行时/个人数据（勿提交）
+data/**
+uploads/**
+!data/.gitkeep
+!data/*.example.json
+
+# 本地缓存与临时文件
+*.log
+*.tmp
+*.bak
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+
+# 媒体与体积较大的文件（建议用 Git LFS；详见 README）
+*.mp4
+*.mov
+*.avi
+*.mkv
+
+# 操作系统/编辑器
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

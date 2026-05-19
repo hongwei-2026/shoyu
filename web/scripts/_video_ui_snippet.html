@@ -1,0 +1,81 @@
+            <label class="field">
+              <span class="field-label">??????????????</span>
+              <select id="recognitionMode" class="input-lg" aria-describedby="recognitionModeHint">
+                <option value="hybrid" selected>???ONNX + ?? OCR + Kimi + DeepSeek ???</option>
+                <option value="onnx">??? ONNX????????</option>
+              </select>
+              <p id="recognitionModeHint" class="field-hint">????????????? OCR/Kimi?ONNX ?????????</p>
+            </label>
+        </div>
+
+        <motion class="video-mode-tabs" role="tablist" aria-label="??????">
+          <button type="button" class="video-mode-tab is-active" role="tab" id="tab-video-full" aria-selected="true" aria-controls="panel-video-full" data-video-mode="full">
+            ??? � ????
+            <span class="video-mode-tab-desc">??????</span>
+          </button>
+          <button type="button" class="video-mode-tab" role="tab" id="tab-video-rt" aria-selected="false" aria-controls="panel-video-rt" data-video-mode="rt">
+            ??? � ?????
+            <span class="video-mode-tab-desc">????</span>
+          </button>
+        </div>
+
+        <div id="panel-video-full" class="video-mode-panel is-active" role="tabpanel" aria-labelledby="tab-video-full">
+          <div class="card video-mode-card video-mode-card--full">
+            <h3 class="card-title">????</h3>
+            <p class="lede small">?<strong>???????</strong>????????????????</p>
+            <label class="check"><input type="checkbox" id="chkJobHistory" checked /> ??????????</label>
+            <label class="check"><input type="checkbox" id="videoJobSpeak" /> ?????????</label>
+            <button type="button" class="btn btn-accent btn-block" id="btnRunVideoJob" disabled>??????</button>
+            <p class="status-line" id="jobStatus"></p>
+            <motion id="jobResult" class="result-box" hidden></motion>
+            <p id="jobBurnedSubtitle" class="result-box result-box--subtitle" hidden></p>
+            <p id="jobHybridDetail" class="field-hint job-hybrid-detail" hidden></p>
+            <p id="jobQualityNote" class="field-hint job-quality-note" hidden></p>
+            <p id="jobError" class="error-line" hidden></p>
+          </motion>
+        </motion>
+
+        <div id="panel-video-rt" class="video-mode-panel" role="tabpanel" aria-labelledby="tab-video-rt" hidden>
+          <div class="card video-mode-card video-mode-card--rt">
+            <h3 class="card-title">?????</h3>
+            <p class="lede small video-rt-warn">
+              ???????<strong>??</strong>????????????????????<strong>????</strong>??????????????????????
+            </p>
+            <video id="videoFilePreview" class="preview-video" playsinline controls muted></video>
+            <label class="field">
+              <span class="field-label">?????? 4?8 ??</span>
+              <input id="videoSliceMs" class="input-lg" type="number" value="5000" min="4000" max="8000" step="500" />
+            </label>
+            <label class="check"><input type="checkbox" id="videoRtAppendHistory" /> ????????</label>
+            <label class="check"><input type="checkbox" id="videoRtSpeak" /> ???????</label>
+            <div class="btn-row">
+              <button type="button" class="btn btn-primary btn-block" id="btnVideoRtStart">???????</button>
+              <button type="button" class="btn btn-danger btn-block" id="btnVideoRtStop" disabled>??</button>
+            </motion>
+            <p class="status-line" id="videoRtStatus"></p>
+            <h4 class="subtitle-panel-title">????</h4>
+            <p id="videoSubtitleCurrent" class="rt-current" role="status" aria-live="polite"></p>
+            <div id="videoSubtitleLines" class="rt-lines" role="log" aria-relevant="additions"></div>
+          </motion>
+        </motion>
+
+        <div class="card video-manual-card">
+          <h3 class="card-title">?? / ????</h3>
+          <p class="lede small">?????????????????????????</p>
+          <div class="handwrite-canvas-wrap handwrite-canvas-wrap--compact">
+            <canvas id="manualHandCanvas" class="handwrite-canvas" width="480" height="160" aria-label="???"></canvas>
+          </motion>
+          <div class="btn-row handwrite-actions">
+            <button type="button" class="btn btn-primary" id="btnManualHandRecognize">????</button>
+            <button type="button" class="btn btn-quiet" id="btnManualHandClear">??</button>
+          </motion>
+          <label class="field">
+            <span class="field-label">?????</span>
+            <textarea id="manualText" class="input-lg" rows="4" required></textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">???????</span>
+            <input id="manualNote" class="input-lg" maxlength="500" />
+          </label>
+          <button type="button" class="btn btn-primary btn-block" id="btnSaveManual">????</button>
+        </motion>

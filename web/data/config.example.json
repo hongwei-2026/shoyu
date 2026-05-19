@@ -1,0 +1,11 @@
+{
+  "uniSignRepoRoot": "models/Uni-Sign-repo",
+  "models": {
+    "csl_daily": {
+      "onnxDir": "models/_extract/unisign_onnx",
+      "mt5Dir": "models/_extract/Uni-Sign-main/pretrained_weight/mt5-base",
+      "label": "中文手语 · CSL-Daily",
+      "note": "示例配置：请根据你本机的实际路径修改。也可留空，让 web/app.py 自动探测 models/_extract 下的目录。"
+    }
+  }
+}

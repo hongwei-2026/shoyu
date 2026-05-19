@@ -1,0 +1,82 @@
+            <label class="field">
+              <span class="field-label">识别方式（整段与边播均使用）</span>
+              <select id="recognitionMode" class="input-lg" aria-describedby="recognitionModeHint">
+                <option value="hybrid" selected>混合（ONNX + 字幕 OCR + Kimi + DeepSeek 仲裁�?/option>
+                <option value="onnx">仅本�?ONNX（更快，无云端）</option>
+              </select>
+              <p id="recognitionModeHint" class="field-hint">混合模式：有底部字幕时优�?OCR/Kimi；ONNX 专攻标准手语拍摄�?/p>
+            </label>
+        </motion>
+
+        <div class="video-mode-tabs" role="tablist" aria-label="视频识别模式">
+          <button type="button" class="video-mode-tab is-active" role="tab" id="tab-video-full" aria-selected="true" aria-controls="panel-video-full" data-video-mode="full">
+            模式一 · 整段识别
+            <span class="video-mode-tab-desc">主结果，推荐</span>
+          </button>
+          <button type="button" class="video-mode-tab" role="tab" id="tab-video-rt" aria-selected="false" aria-controls="panel-video-rt" data-video-mode="rt">
+            模式�?· 边播边出�?
+            <span class="video-mode-tab-desc">实时预览</span>
+          </button>
+        </div>
+
+        <div id="panel-video-full" class="video-mode-panel is-active" role="tabpanel" aria-labelledby="tab-video-full">
+          <div class="card video-mode-card video-mode-card--full">
+            <h3 class="card-title">整段识别</h3>
+            <p class="lede small">�?strong>整条已上传视�?/strong>跑一次混合识别，得到完整主结果�?/p>
+            <label class="check"><input type="checkbox" id="chkJobHistory" checked /> 把结果记在「记录」里</label>
+            <label class="check"><input type="checkbox" id="videoJobSpeak" /> 识别完成后朗读结�?/label>
+            <button type="button" class="btn btn-accent btn-block" id="btnRunVideoJob" disabled>开始整段识�?/button>
+            <p class="status-line" id="jobStatus"></p>
+            <div id="jobResult" class="result-box" hidden></div>
+            <p id="jobBurnedSubtitle" class="result-box result-box--subtitle" hidden></p>
+            <p id="jobHybridDetail" class="field-hint job-hybrid-detail" hidden></p>
+            <p id="jobQualityNote" class="field-hint job-quality-note" hidden></p>
+            <p id="jobError" class="error-line" hidden></p>
+          </div>
+        </div>
+
+        <div id="panel-video-rt" class="video-mode-panel" role="tabpanel" aria-labelledby="tab-video-rt" hidden>
+          <div class="card video-mode-card video-mode-card--rt">
+            <h3 class="card-title">边播边出�?/h3>
+            <p class="lede small video-rt-warn">
+              播放时按短片�?strong>多次</strong>识别（同样走混合模式），用于边看边对照；<strong>可能漏句</strong>，正式结果请以模式一为准。漏句可在下方补录�?
+            </p>
+            <video id="videoFilePreview" class="preview-video" playsinline controls muted></video>
+            <label class="field">
+              <span class="field-label">每段时长（约 4�? 秒）</span>
+              <input id="videoSliceMs" class="input-lg" type="number" value="5000" min="4000" max="8000" step="500" />
+            </label>
+            <label class="check"><input type="checkbox" id="videoRtAppendHistory" /> 每段写入「记录�?/label>
+            <label class="check"><input type="checkbox" id="videoRtSpeak" /> 每段出字后朗�?/label>
+            <div class="btn-row">
+              <button type="button" class="btn btn-primary btn-block" id="btnVideoRtStart">开始边播边出字</button>
+              <button type="button" class="btn btn-danger btn-block" id="btnVideoRtStop" disabled>停止</button>
+            </div>
+            <p class="status-line" id="videoRtStatus"></p>
+            <h4 class="subtitle-panel-title">实时字幕</h4>
+            <p id="videoSubtitleCurrent" class="rt-current" role="status" aria-live="polite"></p>
+            <div id="videoSubtitleLines" class="rt-lines" role="log" aria-relevant="additions"></motion>
+          </motion>
+        </motion>
+
+        <div class="card video-manual-card">
+          <h3 class="card-title">补录 / 手写保存</h3>
+          <p class="lede small">整段或边播漏掉的句子，可手写或打字后存进「记录」�?/p>
+          <div class="handwrite-canvas-wrap handwrite-canvas-wrap--compact">
+            <canvas id="manualHandCanvas" class="handwrite-canvas" width="480" height="160" aria-label="手写�?></canvas>
+          </motion>
+          <div class="btn-row handwrite-actions">
+            <button type="button" class="btn btn-primary" id="btnManualHandRecognize">识别填入</button>
+            <button type="button" class="btn btn-quiet" id="btnManualHandClear">清空</button>
+          </motion>
+          <label class="field">
+            <span class="field-label">写下来的�?/span>
+            <textarea id="manualText" class="input-lg" rows="4" required></textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">备注（可不填�?/span>
+            <input id="manualNote" class="input-lg" maxlength="500" />
+          </label>
+          <button type="button" class="btn btn-primary btn-block" id="btnSaveManual">存到记录</button>
+        </motion>
+

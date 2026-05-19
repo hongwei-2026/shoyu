@@ -1,0 +1,19 @@
+# 建议启用 Git LFS 来存放大文件（否则 GitHub 可能因文件 >100MB 推送失败）
+#   git lfs install
+#   git lfs track "*.onnx" "*.tar.gz" "*.zip" "*.mp4" "*.exe"
+
+*.onnx filter=lfs diff=lfs merge=lfs -text
+*.pt filter=lfs diff=lfs merge=lfs -text
+*.pth filter=lfs diff=lfs merge=lfs -text
+*.bin filter=lfs diff=lfs merge=lfs -text
+*.safetensors filter=lfs diff=lfs merge=lfs -text
+
+*.tar.gz filter=lfs diff=lfs merge=lfs -text
+*.zip filter=lfs diff=lfs merge=lfs -text
+
+*.mp4 filter=lfs diff=lfs merge=lfs -text
+*.mov filter=lfs diff=lfs merge=lfs -text
+*.avi filter=lfs diff=lfs merge=lfs -text
+*.mkv filter=lfs diff=lfs merge=lfs -text
+
+*.exe filter=lfs diff=lfs merge=lfs -text
